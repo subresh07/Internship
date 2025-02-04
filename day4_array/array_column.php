@@ -27,4 +27,4 @@ $records = [
 $first_names = array_column($records, 'first_name');
 print_r($first_names);
 
-?>
+?> 

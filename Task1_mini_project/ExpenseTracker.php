@@ -64,7 +64,6 @@
         <h1>Daily Expenses Tracker</h1>
 
         <?php
-       
         $total_expenses = 0;
         $average_expense = 0;
         $max_expense = 0;
@@ -72,17 +71,18 @@
         $day_max = 0;
         $day_min = 0;
 
-        
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $expenses = [];
 
-          
             for ($day = 1; $day <= 7; $day++) {
                 $expense_key = "expense_day_$day";
-                $expenses[$day] = isset($_POST[$expense_key]) ? floatval($_POST[$expense_key]) : 0;
+                $expense_value = isset($_POST[$expense_key]) ? floatval($_POST[$expense_key]) : 0;
+                if ($expense_value < 0) {
+                    $expense_value = 0; // Reset negative values to 0
+                }
+                $expenses[$day] = $expense_value;
             }
 
-            
             $total_expenses = array_sum($expenses);
             $average_expense = $total_expenses / 7;
             $max_expense = max($expenses);
@@ -92,11 +92,11 @@
         }
         ?>
 
-        <!-- Form for User to Input  -->
+        <!-- Form for User to Input Expenses -->
         <form method="post">
             <?php for ($day = 1; $day <= 7; $day++): ?>
                 <label for="expense_day_<?php echo $day; ?>">Enter expense for Day <?php echo $day; ?>:</label>
-                <input type="number" id="expense_day_<?php echo $day; ?>" name="expense_day_<?php echo $day; ?>" step="0.01" value="<?php echo isset($_POST["expense_day_$day"]) ? $_POST["expense_day_$day"] : ''; ?>">
+                <input type="number" id="expense_day_<?php echo $day; ?>" name="expense_day_<?php echo $day; ?>" min="0" step="0.01" value="<?php echo isset($_POST["expense_day_$day"]) ? $_POST["expense_day_$day"] : ''; ?>">
             <?php endfor; ?>
             <input type="submit" value="Calculate">
         </form>

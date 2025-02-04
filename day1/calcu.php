@@ -1,15 +1,15 @@
 <?php
-// Initialize result variable
+
 $result = "";
 
-// Check if the form is submitted
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Retrieve user inputs
     $num1 = $_POST['num1'];
     $num2 = $_POST['num2'];
     $operation = $_POST['operation'];
 
-    // Perform calculation based on operation
+
     if (is_numeric($num1) && is_numeric($num2)) {
         switch ($operation) {
             case 'add':
@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <h2>PHP Interactive Calculator</h2>
 
-<!-- Simple HTML Form for input -->
+
 <form method="POST">
     <label for="num1">First Number:</label>
     <input type="number" id="num1" name="num1" value="<?php echo isset($_POST['num1']) ? $_POST['num1'] : ''; ?>" required><br><br>

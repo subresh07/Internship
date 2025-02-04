@@ -22,4 +22,16 @@ print_r(array_filter($array1, "odd"));
 echo"<br>";
 echo "even :\n ";
 print_r(array_filter($array2, "even"));
+
+
+
+echo "<br>";
+echo "<br>";
+
+$array = range(1, 20);
+$result = array_filter($array,function($value){
+    return $value % 2 == 0;
+});
+print_r($result);
+
 ?>
