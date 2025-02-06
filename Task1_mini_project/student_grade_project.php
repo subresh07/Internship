@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $_SESSION['step'] = 4;
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
-    }
+    }   
 }
 
 function calculateAnalysis($students) {
