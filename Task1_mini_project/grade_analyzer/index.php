@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Include required files
+// Include required files require 'send_mail.php';
 require 'csv_parser.php';
 require 'data_analysis.php';
 require 'recommendations.php';
@@ -68,6 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 }
+
+
+
 
 // Reset session data (if requested)
 if (isset($_POST['reset'])) {
@@ -154,85 +157,155 @@ $recommendations = generateRecommendations($students);
 
         <?php elseif ($_SESSION['step'] == 4): ?>
             <h2>Results</h2>
-            <p>Total Students: <?= count($students) ?></p>
+            <h2>Total Students: <?= count($students) ?></>
 
-            <?php
-            // Pagination Settings
-            $students_per_page = 10; // Show 50 students per page
-            $total_students = count($students);
-            $total_pages = ceil($total_students / $students_per_page);
-            $current_page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-            if ($current_page < 1)
-                $current_page = 1;
-            if ($current_page > $total_pages)
-                $current_page = $total_pages;
-
-            // Get students for the current page
-            $start_index = ($current_page - 1) * $students_per_page;
-            $students_on_page = array_slice($students, $start_index, $students_per_page, true);
-            ?>
-
-            <h3>Student Records (Page <?= $current_page ?> of <?= $total_pages ?>)</h3>
-            <ul>
-                <?php foreach ($students_on_page as $name => $subjects): ?>
-                    <li><strong><?= htmlspecialchars($name) ?>:</strong>
-                        <ul>
-                            <?php foreach ($subjects as $subject => $score): ?>
-                                <li><?= htmlspecialchars($subject) ?> - <?= $score ?></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-
-            <!-- Pagination Controls -->
-            <div class="pagination">
-                <?php if ($current_page > 1): ?>
-                    <a href="?page=<?= $current_page - 1 ?>">&laquo; Previous</a>
-                <?php endif; ?>
-
-                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                    <a href="?page=<?= $i ?>" class="<?= $i == $current_page ? 'active' : '' ?>"><?= $i ?></a>
-                <?php endfor; ?>
-
-                <?php if ($current_page < $total_pages): ?>
-                    <a href="?page=<?= $current_page + 1 ?>">Next &raquo;</a>
-                <?php endif; ?>
-            </div>
-
-
-            <h2>Analysis</h2>
-            <p>Total Students: <?= $analysis['total'] ?></p>
-            <p>Average Score: <?= number_format($analysis['average'], 2) ?></p>
-            <p>Highest Score: <?= $analysis['highest']['score'] ?> by <?= $analysis['highest']['name'] ?></p>
-            <p>Lowest Score: <?= $analysis['lowest']['score'] ?> by <?= $analysis['lowest']['name'] ?></p>
-
-            <h3>Recommendations</h3>
-            <ul>
                 <?php
-                // Show recommendations only for students on the current page
-                $recommendations_on_page = array_slice($recommendations, $start_index, $students_per_page, true);
-                foreach ($recommendations_on_page as $student => $message): ?>
-                    <li><strong><?= htmlspecialchars($student) ?>:</strong> <?= htmlspecialchars($message) ?></li>
+                // Pagination Settings
+                $students_per_page = 10; // Show 50 students per page
+                $total_students = count($students);
+                $total_pages = ceil($total_students / $students_per_page);
+                $current_page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+                if ($current_page < 1)
+                    $current_page = 1;
+                if ($current_page > $total_pages)
+                    $current_page = $total_pages;
+
+                // Get students for the current page
+                $start_index = ($current_page - 1) * $students_per_page;
+                $students_on_page = array_slice($students, $start_index, $students_per_page, true);
+                ?>
+
+                <h2>Student Records (Page <?= $current_page ?> of <?= $total_pages ?>)</h2>
+
+                <?php
+                // Step 1: Find the highest marks for each subject across all students
+                $Total_marks_per_subject = 100; // Each subject is out of 100
+                $highest_marks_per_subject = [];
+
+                foreach ($students_on_page as $subjects) {
+                    foreach ($subjects as $subject => $score) {
+                        if (!isset($highest_marks_per_subject[$subject]) || $score > $highest_marks_per_subject[$subject]) {
+                            $highest_marks_per_subject[$subject] = $score;
+                        }
+                    }
+                }
+
+                // Step 2: Display each student's subjects with scores and calculate their percentage
+                foreach ($students_on_page as $name => $subjects):
+                    $total_obtained = array_sum($subjects); // Sum of scores across all subjects
+                    $total_possible = count($subjects) * $Total_marks_per_subject; // Total possible marks
+                    $percentage = ($total_obtained / $total_possible) * 100; // Calculate percentage
+            
+                    // Fetch recommendation for the current student
+                    $student_recommendation = $recommendations[$name] ?? "No specific recommendation available.";
+                    ?>
+                    <h3>Student Name:<?= htmlspecialchars((string) $name) ?></h3> <!-- Student name outside the table -->
+                    <table border="1" style="text-align:center; background-color:#d9edf5">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Total Marks</th>
+                            <th>Score</th>
+                            <th>Highest Marks</th>
+                        </tr>
+                        <?php foreach ($subjects as $subject => $score): ?>
+                            <tr>
+                                <td><?= htmlspecialchars((string) $subject) ?></td>
+                                <td><?= htmlspecialchars((string) $Total_marks_per_subject) ?></td> <!-- Total per subject -->
+                                <td><?= htmlspecialchars((string) $score) ?></td>
+                                <td><?= htmlspecialchars((string) $highest_marks_per_subject[$subject]) ?></td>
+                                <!-- Highest marks in subject -->
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr>
+                            <th>Overall Percentage</th>
+                            <td style="text-align:center; background-color:#d9edf7" colspan="3">
+                                <?= number_format($percentage, 2) ?>%
+                            </td>
+                        </tr>
+                    </table>
+
+
+
+                    <!-- Display Recommendation Below Student Report -->
+                    <p><strong><?= htmlspecialchars((string) $name) ?>:</strong>
+                        <?= htmlspecialchars($student_recommendation) ?>
+                    </p>
+
+                    <form action="send_mail.php" method="POST">
+                        <input type="hidden" name="student_name" value="<?= htmlspecialchars($name) ?>">
+
+                        <!-- Send Full Student Data -->
+                        <input type="hidden" name="student_data" value="<?= htmlspecialchars(json_encode($subjects)) ?>">
+                        <input type="hidden" name="recommendation" value="<?= htmlspecialchars($student_recommendation) ?>">
+
+                        <label>Parent Email:</label>
+                        <input type="email" name="parent_email" ? required>
+                        <button type="submit" name="send_email">Send Email</button>
+                    </form>
+
+                    
+
+
+
+                    <br> <!-- Space between different student tables -->
                 <?php endforeach; ?>
-            </ul>
 
-            <h2>Edit Data</h2>
-            <a href="edit.php">Edit Uploaded Data</a>
 
-            <h2>Export Data</h2>
-            <a href="export.php">Download CSV</a>
 
-            <h2>Delete Student Records</h2>
-            <form method="POST" action="delete.php">
-                <select name="delete_student">
-                    <?php foreach ($_SESSION['student_data'] as $name => $subjects): ?>
-                        <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+
+
+
+
+
+
+                <!-- Pagination Controls -->
+                <div class="pagination">
+                    <?php if ($current_page > 1): ?>
+                        <a href="?page=<?= $current_page - 1 ?>">&laquo; Previous</a>
+                    <?php endif; ?>
+
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <a href="?page=<?= $i ?>" class="<?= $i == $current_page ? 'active' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+
+                    <?php if ($current_page < $total_pages): ?>
+                        <a href="?page=<?= $current_page + 1 ?>">Next &raquo;</a>
+                    <?php endif; ?>
+                </div>
+
+
+                <h2>Analysis</h2>
+                <p>Total Students: <?= $analysis['total'] ?></p>
+                <p>Average Score: <?= number_format($analysis['average'], 2) ?></p>
+                <p>Highest Score: <?= $analysis['highest']['score'] ?> by <?= $analysis['highest']['name'] ?></p>
+                <p>Lowest Score: <?= $analysis['lowest']['score'] ?> by <?= $analysis['lowest']['name'] ?></p>
+
+                <h3>Recommendations</h3>
+                <ul>
+                    <?php
+                    // Show recommendations only for students on the current page
+                    $recommendations_on_page = array_slice($recommendations, $start_index, $students_per_page, true);
+                    foreach ($recommendations_on_page as $student => $message): ?>
+                        <li><strong><?= htmlspecialchars($student) ?>:</strong> <?= htmlspecialchars($message) ?></li>
                     <?php endforeach; ?>
-                </select>
-                <button type="submit">Delete</button>
-            </form>
-        <?php endif; ?>
+                </ul>
+
+                <h2>Edit Data</h2>
+                <a href="edit.php">Edit Uploaded Data</a>
+
+                <h2>Export Data</h2>
+                <a href="export.php">Download CSV</a>
+
+                <h2>Delete Student Records</h2>
+                <form method="POST" action="delete.php">
+                    <select name="delete_student">
+                        <?php foreach ($_SESSION['student_data'] as $name => $subjects): ?>
+                            <option value="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button type="submit">Delete</button>
+                </form>
+            <?php endif; ?>
     </div>
 </body>
 
