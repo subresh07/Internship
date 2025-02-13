@@ -1,62 +1,101 @@
 <?php
+session_start();
 require_once 'functions.php';
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['button'])) {
-    handleButtonPress($_POST['button']);
+if (!isset($_SESSION['expression'])) {
+    $_SESSION['expression'] = '';
 }
-
-$input = $_SESSION['input'];
-$result = $_SESSION['result'];
-$expression = $_SESSION['expression'];
-$memory = $_SESSION['memory'];
+if (!isset($_SESSION['input'])) {
+    $_SESSION['input'] = '';
+}
+if (!isset($_SESSION['result'])) {
+    $_SESSION['result'] = '';
+}
+if (!isset($_SESSION['memory'])) {
+    $_SESSION['memory'] = 0;
+}
+$buttons = [
+    ['C', 'CE', 'MC'],
+    ['7', '8', '9', '/'],
+    ['4', '5', '6', '*'],
+    ['1', '2', '3', '-'],
+    ['±', '0', '.', '+'],
+    ['M+', 'M-', 'MR', '=']
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple PHP Calculator</title>
+    <title>PHP OOP Calculator</title>
+    <link rel="stylesheet" href="assets/styles.css">
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
-        .calculator { display: inline-block; padding: 15px; background: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .display { text-align: right; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 10px; background: #eaeaea; min-height: 50px; }
-        .operation { font-size: 24px; color: #333; }
-        .result { font-size: 32px; font-weight: bold; color: #000; margin-top: 5px; }
-        button { font-size: 18px; padding: 15px; margin: 2px; border: none; cursor: pointer; background-color: #f1f1f1; border-radius: 5px; }
-        button:hover { background-color: #ddd; }
+        #cal-body {
+            width: 400px;
+            border-radius: 20px;
+            background: #dde1e7;
+            box-shadow: -5px -5px 9px rgba(255,255,255,0.45), 5px 5px 9px rgba(94,104,121,0.3);
+            padding: 45px;
+            scale: 0.6;
+        }
+        .input input {
+            height: 100px;
+            width: 100%;
+            border-radius: 10px;
+            background: #dde1e7;
+            box-shadow: inset -5px -5px 9px rgba(255,255,255,0.45), inset 5px 5px 9px rgba(94,104,121,0.3);
+            border: 0;
+            color: rgb(116, 116, 116);
+            font-size: 2.5rem;
+            padding: 0 30px;
+        }
+        .input input:focus {
+            outline: none;
+        }
+        .buttons button {
+            cursor: pointer;
+            height: 60px;
+            width: 60px;
+            border: 0;
+            font-size: 2rem;
+            border-radius: 50px;
+            background: #dde1e7;
+            box-shadow: -5px -5px 9px rgba(255,255,255,0.45), 5px 5px 9px rgba(94,104,121,0.3);
+            color: rgb(137, 137, 137);
+        }
+        .buttons button:focus {
+            background: #dde1e7;
+            box-shadow: inset -5px -5px 9px rgba(255,255,255,0.45), inset 5px 5px 9px rgba(94,104,121,0.3);
+        }
+        .buttons {
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
-    <h1>Calculator</h1>
-    <form method="POST">
-        <div class="calculator">
+    <div class="calculator">
+        <h2>PHP OOP Calculator</h2>
+        <form action="process.php" method="post">
             <div class="display">
-                <div class="operation"><?php echo $expression !== '' ? getInputAsString($expression) : getInputAsString($input); ?></div>
-                <?php if ($result !== '' && is_numeric($result)): ?>
-                    <div class="result"><?php echo $result; ?></div>
+                <div class="operation"><?php echo $_SESSION['expression'] !== '' ? htmlspecialchars($_SESSION['expression']) : htmlspecialchars($_SESSION['input']); ?></div>
+                <?php if ($_SESSION['result'] !== '' && is_numeric($_SESSION['result'])): ?>
+                    <div class="result"><?php echo $_SESSION['result']; ?></div>
                 <?php endif; ?>
             </div>
-            <div>
-                <?php
-                $buttons = [
-                    ['C', 'CE', 'Back', 'MC'],
-                    ['7', '8', '9', '/'],
-                    ['4', '5', '6', '*'],
-                    ['1', '2', '3', '-'],
-                    ['±', '0', '.', '+'],
-                    ['M+', 'M-', 'MR', '=']
-                ];
-
-                foreach ($buttons as $row) {
-                    echo "<div>";
-                    foreach ($row as $button) {
-                        echo "<button type='submit' name='button' value='$button'>$button</button>";
-                    }
-                    echo "</div>";
-                }
-                ?>
+            <div id="cal-body">
+                <div style="padding-top: 40px;">
+                    <?php foreach ($buttons as $row): ?>
+                        <div class="buttons">
+                            <?php foreach ($row as $button): ?>
+                                <button type="submit" name="button" value="<?= $button ?>"><?= $button ?></button>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </body>
 </html>

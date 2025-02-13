@@ -1,13 +1,15 @@
 <?php
-abstract class Operation {
-    protected float $number1;
-    protected float $number2;
+abstract class Operation 
+{
+    protected $num1;
+    protected $num2;
 
-    public function __construct(float $number1, float $number2) {
-        $this->number1 = $number1;
-        $this->number2 = $number2;
+    public function __construct($num1, $num2) 
+    {
+        $this->num1 = $num1;
+        $this->num2 = $num2;
     }
 
-    abstract public function calculate(): float;
+    abstract public function calculate();
 }
 ?>
