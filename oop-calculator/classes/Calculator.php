@@ -8,7 +8,8 @@ class Calculator {
     private $memory;
     private static $instance = null;
 
-    private function __construct() {
+    private function __construct() 
+    {
         $this->operation = $_SESSION['operation'] ?? '';
         $this->memory = $_SESSION['memory'] ?? 0;
     }

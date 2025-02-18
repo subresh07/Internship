@@ -1,4 +1,3 @@
-<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PHP Calculator</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -65,16 +65,71 @@
             width: 100%;
             grid-column: span 2;
         }
+
+        /* History Section */
+        #history {
+            margin-top: 20px;
+            width: 400px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #history h3 {
+            margin: 0;
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        #history ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #history li {
+            padding: 5px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            user-select: text; /* Allows selection */
+        }
+
+        #history li:hover {
+            background: #f0f0f0;
+        }
+
+        #history li:last-child {
+            border-bottom: none;
+        }
+
+        #clear-history {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 1rem;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #clear-history:hover {
+            background: #e60000;
+        }
     </style>
 </head>
 <body>
-
+<div class="main-container" style="display:flex; gap:200px; flex-direction:row;">
 <div id="cal-body">
     <div class="input">
-        <input type="text" id="operation" value="<?php echo $_SESSION['operation'] ?? ''; ?>" readonly>
+        <input type="text" id="operation" readonly>
     </div>
     <div class="input" style="margin-top: 10px;">
-        <input type="text" id="result" value="<?php echo $_SESSION['result'] ?? '0'; ?>" readonly>
+        <input type="text" id="result" readonly>
     </div>
 
     <div class="buttons">
@@ -105,13 +160,27 @@
 
         <button onclick="sendInput('√')">√</button>
         <button onclick="sendInput('!')">!</button>
+
+        <!-- Memory Buttons -->
+        <button onclick="sendInput('MR')">MR</button>
+        <button onclick="sendInput('M+')">M+</button>
+        <button onclick="sendInput('M-')">M-</button>
+        <button onclick="sendInput('MC')">MC</button>
+
         <button class="equal" onclick="sendInput('=')">=</button>
     </div>
 </div>
 
+<!-- History Section -->
+<div id="history" >
+    <h3>Calculation History</h3>
+    <ul id="history-list"></ul>
+    <button id="clear-history" onclick="clearHistory()">Clear History</button>
+</div>
+    </div>
+
 <script>
-    function sendInput(value) 
-    {
+    function sendInput(value) {
         fetch("Calculator.php", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -119,8 +188,41 @@
         })
         .then(response => response.json())
         .then(data => {
-            document.getElementById("operation").value = data.operation;
-            document.getElementById("result").value = data.result;
+            if (value === "MR") {
+                document.getElementById("operation").value = "";
+                document.getElementById("result").value = data.result;
+            } else {
+                document.getElementById("operation").value = data.operation;
+                document.getElementById("result").value = data.result;
+            }
+
+            updateHistory(data.history);
+        })
+        .catch(error => console.error("Error:", error));
+    }
+
+    function updateHistory(history) {
+        let historyList = document.getElementById("history-list");
+        historyList.innerHTML = "";
+        history.forEach(entry => {
+            let li = document.createElement("li");
+            li.textContent = entry;
+            li.onclick = function () {
+                document.getElementById("operation").value = entry.split(" = ")[0]; // Copy to input
+            };
+            historyList.prepend(li);
+        });
+    }
+
+    function clearHistory() {
+        fetch("Calculator.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "button=CH"
+        })
+        .then(response => response.json())
+        .then(() => {
+            document.getElementById("history-list").innerHTML = "";
         })
         .catch(error => console.error("Error:", error));
     }
