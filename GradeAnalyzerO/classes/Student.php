@@ -26,4 +26,3 @@ class Student {
         return count($this->marks) ? $this->getTotalScore() / count($this->marks) : 0;
     }
 }
-    
